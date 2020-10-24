@@ -37,6 +37,14 @@ class MoviesListingViewController: BaseVC {
         
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 150
+        
+        tableView.rx
+            .modelSelected(MoviesListingViewModel.MovieListCellType.self)
+            .subscribe(onNext: { [weak self] indexPath in
+                guard let self = self else { return }
+                
+                self.performSegue(withIdentifier: "MovieDetail", sender: self)
+            }).disposed(by: disposeBag)
     }
 
     private func initUI() {
@@ -71,8 +79,7 @@ class MoviesListingViewController: BaseVC {
                 } }
             .disposed(by: disposeBag)
         
-        viewModel
-            .onLoad
+        viewModel.onLoad
             .map { [weak self] in self?.showLoading($0)}
             .subscribe()
             .disposed(by: disposeBag)

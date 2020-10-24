@@ -1,5 +1,5 @@
 //
-//  UIImageView+extension.swift
+//  UIImageView+Extension.swift
 //  movie
 //
 //  Created by Thong Hao Yi on 23/10/2020.
