@@ -35,7 +35,7 @@ class MovieDetailInfo {
                 content:movie.runtime.minutesToHourMinutes()
             )
         ]
-
+        
         self.title = movie.title
         self.image = imageUrl
         self.content = tempContent
@@ -43,26 +43,47 @@ class MovieDetailInfo {
 }
 
 class MovieDetailViewModel {
-
+    
+    let movieId: Int
     let httpManager: HTTPManager
     let disposeBag = DisposeBag()
-    
+
     var onLoad: Observable<Bool> {
         return loadInProgress
             .asObservable()
             .distinctUntilChanged()
     }
-    
     var movieDetail: Observable<MovieDetailInfo?> {
         return onGetMovie.asObservable()
     }
     
-    let loadInProgress = BehaviorRelay(value: false)
+    var webviewLink: Observable<String> {
+        return onGetWebviewLink.asObservable().distinctUntilChanged()
+    }
     
-    let onGetMovie = BehaviorRelay<MovieDetailInfo?>(value: nil)
+    let onError = PublishSubject<String>()
+    let bookingButtonTapped = PublishSubject<Void>()
     
-    init(httpManager: HTTPManager = HTTPManager()) {
+    private let loadInProgress = BehaviorRelay(value: false)
+    private let onGetMovie = BehaviorRelay<MovieDetailInfo?>(value: nil)
+    private let onGetWebviewLink = PublishSubject<String>()
+    
+    init(movieId: Int,
+         httpManager: HTTPManager = HTTPManager()) {
+        self.movieId = movieId
         self.httpManager = httpManager
+        
+        bookingButtonTapped
+            .subscribe(
+                onNext: { [weak self] in
+                    self?.openBookingWebview(movieId: movieId)})
+            .disposed(by: disposeBag)
+    }
+    
+    func openBookingWebview(movieId: Int) {
+        // webview link
+        let webviewLink = "https://www.cathaycineplexes.com.sg/"
+        onGetWebviewLink.onNext(webviewLink)
     }
     
     func getMovie(movieId: Int) {
@@ -71,17 +92,11 @@ class MovieDetailViewModel {
             .getMovie(with: movieId)
             .subscribe(
                 onNext: { [weak self] movieDetail in
-                    guard let strongSelf = self else {
-                        return
-                    }
-                    strongSelf.loadInProgress.accept(false)
-                    self?.onGetMovie.accept(MovieDetailInfo(movie: movieDetail))
-                },
+                    self?.loadInProgress.accept(false)
+                    self?.onGetMovie.accept(MovieDetailInfo(movie: movieDetail)) },
                 onError: { [weak self] error in
-                    guard let strongSelf = self else {
-                        return
-                    }
-                })
+                    self?.loadInProgress.accept(false)
+                    self?.onError.onNext(error.localizedDescription) })
             .disposed(by: disposeBag)
     }
 }

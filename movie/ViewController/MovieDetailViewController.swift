@@ -14,8 +14,10 @@ class MovieDetailViewController: BaseVC {
     @IBOutlet weak var movieTitleLabel: UILabel!
     @IBOutlet weak var posterImageView: UIImageView!
     @IBOutlet weak var detailStackView: UIStackView!
+    @IBOutlet weak var bookingButton: UIButton!
     
-    let viewModel: MovieDetailViewModel = MovieDetailViewModel()
+    var viewModel: MovieDetailViewModel!
+    
     private let disposeBag = DisposeBag()
     
     override func viewDidLoad() {
@@ -23,12 +25,18 @@ class MovieDetailViewController: BaseVC {
         
         initUI()
         bindViewModel()
-        viewModel.getMovie(movieId: 328111)
+        viewModel.getMovie(movieId: viewModel.movieId)
     }
     
     private func initUI() {
         movieTitleLabel.font = .boldSystemFont(ofSize: 25)
         movieTitleLabel.textColor = .white
+        
+        bookingButton.rx
+            .tap
+            .asObservable()
+            .bind(to: viewModel.bookingButtonTapped)
+            .disposed(by: disposeBag)
     }
     
     private func bindViewModel() {
@@ -47,9 +55,29 @@ class MovieDetailViewController: BaseVC {
                 }})
             .disposed(by: disposeBag)
         
-        viewModel.onLoad
-            .map { [weak self] in self?.showLoading($0)}
+        viewModel.webviewLink
+            .map { [weak self] webviewUrl in
+                self?.openWebview(url: webviewUrl) }
             .subscribe()
             .disposed(by: disposeBag)
+        
+       viewModel.onLoad
+            .map { [weak self] showLoading in
+                self?.showLoading(showLoading) }
+            .subscribe()
+            .disposed(by: disposeBag)
+        
+        viewModel.onError
+            .map({ [weak self] errorMessage in
+                self?.onError(errorMessage: errorMessage) })
+            .subscribe()
+            .disposed(by: disposeBag)
+    }
+    
+    func openWebview(url: String) {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let vc = storyboard.instantiateViewController(withIdentifier: "WebviewViewController") as! WebviewViewController
+        vc.url = url
+        self.navigationController?.pushViewController(vc, animated: true)
     }
 }

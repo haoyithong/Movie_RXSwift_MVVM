@@ -12,7 +12,7 @@ import RxCocoa
 class MoviesListingViewModel {
     
     enum MovieListCellType {
-        case movieCell(_ vm: MovieTVCellViewModel)
+        case movieCell(id: Int, vm: MovieTVCellViewModel)
         case loadCell
     }
     var movieCells: Observable<[MovieListCellType]> {
@@ -24,6 +24,7 @@ class MoviesListingViewModel {
             .asObservable()
             .distinctUntilChanged()
     }
+    var onError = PublishSubject<String>()
     
     private let loadInProgress = BehaviorRelay(value: false)
     private let cells = BehaviorRelay<[MovieListCellType]>(value: [])
@@ -41,7 +42,7 @@ class MoviesListingViewModel {
     
     func getCell(movies: [Movie], totalResult: Int) -> [MovieListCellType] {
         var movieListCellTypeArray: [MovieListCellType] = movies.compactMap {
-            .movieCell(MovieTVCellViewModel(movie: $0))
+            .movieCell(id: $0.id, vm: MovieTVCellViewModel(movie: $0))
         }
         if (totalResult >= movies.count) {
             movieListCellTypeArray.append(MovieListCellType.loadCell)
@@ -77,7 +78,7 @@ class MoviesListingViewModel {
                     strongSelf.loadInProgress.accept(false)
                     strongSelf.inLoading = false
                     guard pagingList.results.count > 0 else {
-                        strongSelf.cells.accept([])
+                        strongSelf.onError.onNext("No result found.")
                         return
                     }
                     strongSelf.currentPagingList = pagingList
@@ -88,20 +89,18 @@ class MoviesListingViewModel {
                     strongSelf.movies.append(contentsOf: pagingList.results)
                     strongSelf.cells.accept(strongSelf.getCell(
                         movies: strongSelf.movies ,
-                        totalResult: pagingList.totalResults) )
-                },
+                        totalResult: pagingList.totalResults) ) },
                 onError: { [weak self] error in
                     guard let strongSelf = self else {
                         return
                     }
-                    
                     strongSelf.loadInProgress.accept(false)
                     strongSelf.inLoading = false
+                    strongSelf.onError.onNext(error.localizedDescription)
                     strongSelf.cells.accept(strongSelf.getCell(
-                        movies: strongSelf.movies,
-                        totalResult: strongSelf.currentPagingList?.totalResults ?? 0) )
-                }
-        )
+                            movies: strongSelf.movies,
+                            totalResult: strongSelf.currentPagingList?.totalResults ?? 0
+                    ) ) } )
             .disposed(by: disposeBag)
     }
 }
