@@ -28,7 +28,7 @@ class MoviesListingViewController: BaseVC {
 
         DispatchQueue.main.async {
             self.bindViewModel()
-            self.viewModel.getMovie()
+            self.viewModel.getMovieList()
         }
     }
     
@@ -50,7 +50,7 @@ class MoviesListingViewController: BaseVC {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                     self?.refreshControl.endRefreshing()
                 }
-                self?.viewModel.getMovieRefresh()
+                self?.viewModel.getMovieListRefresh()
                 })
             .disposed(by: disposeBag)
         
@@ -69,7 +69,7 @@ class MoviesListingViewController: BaseVC {
                     cell.viewModel = cellViewModel
                     return cell
                 case .loadCell:
-                    self.viewModel.getMovieNextPage()
+                    self.viewModel.getMovieListNextPage()
                     return UITableViewCell()
                 } }
             .disposed(by: disposeBag)

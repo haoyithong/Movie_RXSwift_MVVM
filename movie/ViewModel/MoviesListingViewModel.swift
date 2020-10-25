@@ -50,17 +50,17 @@ class MoviesListingViewModel {
         return movieListCellTypeArray
     }
     
-    func getMovieRefresh() {
-        getMovie()
+    func getMovieListRefresh() {
+        getMovieList()
     }
     
-    func getMovieNextPage() {
+    func getMovieListNextPage() {
         if let nextPage = self.currentPagingList?.nextPage {
-            getMovie(page: nextPage)
+            getMovieList(page: nextPage)
         }
     }
     
-    func getMovie(page: Int = 1) {
+    func getMovieList(page: Int = 1) {
         
         guard inLoading != true else {
             return
@@ -68,7 +68,7 @@ class MoviesListingViewModel {
         
         loadInProgress.accept(true)
         inLoading = true
-        HTTPManager()
+        self.httpManager
             .getMovieList(page: page)
             .subscribe(
                 onNext: { [weak self] pagingList in
@@ -98,8 +98,8 @@ class MoviesListingViewModel {
                     strongSelf.inLoading = false
                     strongSelf.onError.onNext(error.localizedDescription)
                     strongSelf.cells.accept(strongSelf.getCell(
-                            movies: strongSelf.movies,
-                            totalResult: strongSelf.currentPagingList?.totalResults ?? 0
+                        movies: strongSelf.movies,
+                        totalResult: strongSelf.currentPagingList?.totalResults ?? 0
                     ) ) } )
             .disposed(by: disposeBag)
     }

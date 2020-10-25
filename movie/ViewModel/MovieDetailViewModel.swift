@@ -88,7 +88,7 @@ class MovieDetailViewModel {
     
     func getMovie(movieId: Int) {
         loadInProgress.accept(true)
-        HTTPManager()
+        httpManager
             .getMovie(with: movieId)
             .subscribe(
                 onNext: { [weak self] movieDetail in

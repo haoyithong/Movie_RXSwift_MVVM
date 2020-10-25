@@ -43,6 +43,10 @@ class MovieDetailViewController: BaseVC {
         viewModel.movieDetail
             .subscribe(onNext: { [weak self] movie in
                 guard let movie = movie else {
+                    // show a place holder view
+                    self?.movieTitleLabel.text = "Title"
+                    self?.posterImageView.imageFromUrl(urlString: "")
+                    self?.detailStackView.removeAllArrangedSubviews()
                     return
                 }
                 self?.movieTitleLabel.text = movie.title
