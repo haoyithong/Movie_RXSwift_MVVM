@@ -25,7 +25,7 @@ class MovieTVCell: UITableViewCell {
         if let viewModel = viewModel {
             titleLabel.text = viewModel.title
             popularityLabel.text = "Popularity: \(viewModel.popularity)"
-            var imageUrl = Config.imageBaseUrl + Config.posterSize + viewModel.image
+            let imageUrl = Config.imageBaseUrl + Config.posterSize + viewModel.image
             posterImageView.imageFromUrl(urlString: imageUrl)
         }
     }

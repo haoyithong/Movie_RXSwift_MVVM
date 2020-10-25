@@ -14,10 +14,12 @@ struct Config {
     static let apiKey = "328c283cd27bd1877d9080ccb1604c91"
     static let imageBaseUrl = "https://image.tmdb.org/t/p/"
     static let posterSize = "w154"
+    static let DetailSize = "w500"
 }
 
 struct API {
     static let getMovies = "discover/movie"
+    static let getMovieDetail = "movie"
 }
 
 

@@ -21,12 +21,15 @@ class MoviesListingViewController: BaseVC {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         initTableView()
         initUI()
-        bindViewModel()
-        
-        viewModel.getMovie()
+        setupEvent()
+
+        DispatchQueue.main.async {
+            self.bindViewModel()
+            self.viewModel.getMovie()
+        }
     }
     
     private func initTableView() {
@@ -48,7 +51,7 @@ class MoviesListingViewController: BaseVC {
                     self?.refreshControl.endRefreshing()
                 }
                 self?.viewModel.getMovieRefresh()
-                }, onCompleted: nil, onDisposed: nil)
+                })
             .disposed(by: disposeBag)
         
         tableView.addSubview(refreshControl)
@@ -59,7 +62,7 @@ class MoviesListingViewController: BaseVC {
             .bind(to: self.tableView.rx.items) { tableView, index, element in
                 let indexPath = IndexPath(item: index, section: 0)
                 switch element {
-                case .movieCell(let cellViewModel):
+                case .movieCell(_, let cellViewModel):
                     guard let cell = tableView.dequeueReusableCell(withIdentifier: Cell.movieCell, for: indexPath) as? MovieTVCell else {
                         return UITableViewCell()
                     }
@@ -71,10 +74,36 @@ class MoviesListingViewController: BaseVC {
                 } }
             .disposed(by: disposeBag)
         
-        viewModel
-            .onLoad
-            .map { [weak self] in self?.showLoading($0)}
+        viewModel.onLoad
+            .map { [weak self] showLoading in
+                self?.showLoading(showLoading) }
             .subscribe()
             .disposed(by: disposeBag)
+        
+        viewModel.onError
+            .map({ [weak self] errorMessage in
+                self?.onError(errorMessage: errorMessage) })
+            .subscribe()
+            .disposed(by: disposeBag)
+    }
+    
+    private func setupEvent() {
+        tableView.rx
+            .modelSelected(MoviesListingViewModel.MovieListCellType.self)
+            .subscribe(onNext: { [weak self] modelSelected in
+                switch modelSelected {
+                case .movieCell(let id, _):
+                    self?.openMovieDetail(movieId: id)
+                default:
+                    break
+                } })
+            .disposed(by: disposeBag)
+    }
+    
+    func openMovieDetail(movieId: Int) {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let vc = storyboard.instantiateViewController(withIdentifier: "MovieDetailViewController") as! MovieDetailViewController
+        vc.viewModel = MovieDetailViewModel(movieId: movieId)
+        self.navigationController?.pushViewController(vc, animated: true)
     }
 }
