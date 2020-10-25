@@ -44,7 +44,7 @@ class MoviesListingViewModel {
         var movieListCellTypeArray: [MovieListCellType] = movies.compactMap {
             .movieCell(id: $0.id, vm: MovieTVCellViewModel(movie: $0))
         }
-        if (totalResult >= movies.count) {
+        if (totalResult > movies.count) {
             movieListCellTypeArray.append(MovieListCellType.loadCell)
         }
         return movieListCellTypeArray
